@@ -17,6 +17,8 @@ jobs:
 
       - run: mkdir -p build/distributions
 
+      - run: curl --output - $SUPPORT_LIB_URI | openssl enc -d -aes-256-cbc -md sha512 -pbkdf2 -iter 100000 -salt -in - -out - -k $SUPPORT_LIB_PASSWORD | tar zxf -
+
       - run: sbt test
 
       - when:
