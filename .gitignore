@@ -1,0 +1,9 @@
+/.bsp/
+/.idea/
+/pipe.xpl
+/target/
+/project/target/
+/project/project/target/
+.DS_Store
+/out.pdf
+
