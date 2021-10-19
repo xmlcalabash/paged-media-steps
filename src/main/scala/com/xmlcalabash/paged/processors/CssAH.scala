@@ -1,6 +1,6 @@
 package com.xmlcalabash.paged.processors
 
-import com.xmlcalabash.paged.config.{CssProcessor, FoProcessor}
+import com.xmlcalabash.paged.config.CssProcessor
 import com.xmlcalabash.paged.exceptions.PagedMediaException
 import com.xmlcalabash.runtime.{XMLCalabashRuntime, XProcMetadata}
 import com.xmlcalabash.util.{MediaType, S9Api}
@@ -8,8 +8,7 @@ import jp.co.antenna.XfoJavaCtl.{MessageListener, XfoFormatPageListener, XfoObj}
 import net.sf.saxon.s9api.{QName, Serializer, XdmNode, XdmValue}
 import org.slf4j.{Logger, LoggerFactory}
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File, OutputStream, PrintStream}
-import java.net.URI
+import java.io._
 import scala.collection.mutable.ListBuffer
 
 class CssAH extends CssProcessor {
@@ -34,10 +33,14 @@ class CssAH extends CssProcessor {
   private var ah: XfoObj = _
   private var primarySS = Option.empty[String]
   private val userSS = ListBuffer.empty[String]
+  private val tempFiles = ListBuffer.empty[File]
 
   override def initialize(runtime: XMLCalabashRuntime, options: Map[QName, XdmValue]): Unit = {
     this.runtime = runtime
     this.options = options
+    primarySS = None
+    userSS.clear()
+    tempFiles.clear()
 
     ah = new XfoObj()
     ah.setFormatterType(XfoObj.S_FORMATTERTYPE_XMLCSS)
@@ -120,6 +123,8 @@ class CssAH extends CssProcessor {
     val temp = File.createTempFile("xmlcalabash-focss", ".css")
     temp.deleteOnExit()
 
+    tempFiles += temp
+
     val cssout = new PrintStream(temp)
     cssout.print(doc.getStringValue)
     cssout.close()
@@ -153,6 +158,15 @@ class CssAH extends CssProcessor {
     val bis = new ByteArrayInputStream(baos.toByteArray)
     ah.render(bis, out, outputFormat)
     ah.releaseObjectEx();
+
+    for (temp <- tempFiles) {
+      try {
+        temp.delete()
+      } catch {
+        case _: Throwable =>
+          ()
+      }
+    }
   }
 
   private class FoMessages extends MessageListener with XfoFormatPageListener {

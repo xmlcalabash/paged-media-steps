@@ -6,13 +6,11 @@ import com.xmlcalabash.paged.config.CssProcessor
 import com.xmlcalabash.paged.exceptions.PagedMediaException
 import com.xmlcalabash.runtime.{XMLCalabashRuntime, XProcMetadata}
 import com.xmlcalabash.util.{MediaType, S9Api}
-import jp.co.antenna.XfoJavaCtl.{MessageListener, XfoFormatPageListener, XfoObj}
 import net.sf.saxon.s9api.{QName, Serializer, XdmNode, XdmValue}
 import org.slf4j.{Logger, LoggerFactory}
 
 import java.io._
-import java.net.URI
-import java.nio.file.{Path, Paths}
+import java.nio.file.Paths
 import scala.collection.mutable.ListBuffer
 
 class CssPrince extends CssProcessor {
@@ -52,10 +50,14 @@ class CssPrince extends CssProcessor {
   private var prince: Prince = _
   private var primarySS = Option.empty[String]
   private val userSS = ListBuffer.empty[String]
+  private val tempFiles = ListBuffer.empty[File]
 
   override def initialize(runtime: XMLCalabashRuntime, options: Map[QName, XdmValue]): Unit = {
     this.runtime = runtime
     this.options = options
+    primarySS = None
+    userSS.clear()
+    tempFiles.clear()
 
     val exePath = if (options.contains(_exePath)) {
       options(_exePath).getUnderlyingValue.getStringValue
@@ -212,6 +214,8 @@ class CssPrince extends CssProcessor {
     val temp = File.createTempFile("xmlcalabash-princecss", ".css")
     temp.deleteOnExit()
 
+    tempFiles += temp
+
     val cssout = new PrintStream(temp)
     cssout.print(doc.getStringValue)
     cssout.close()
@@ -240,6 +244,15 @@ class CssPrince extends CssProcessor {
 
     val bis = new ByteArrayInputStream(baos.toByteArray)
     prince.convert(bis, out)
+
+    for (temp <- tempFiles) {
+      try {
+        temp.delete()
+      } catch {
+        case _: Throwable =>
+          ()
+      }
+    }
   }
 
   private class PrinceMessages extends PrinceEvents {
