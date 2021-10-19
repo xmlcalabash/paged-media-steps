@@ -8,6 +8,8 @@ executors:
 jobs:
   build:
     executor: docker-default
+    environment:
+      AHF70_64_HOME=/tmp
     steps:
       - checkout
       - restore_cache:
@@ -19,7 +21,7 @@ jobs:
 
       - run: curl --output - $SUPPORT_LIB_URI | openssl enc -d -aes-256-cbc -md sha512 -pbkdf2 -iter 100000 -salt -in - -out - -k $SUPPORT_LIB_PASSWORD | tar zxf -
 
-      - run: sbt test
+      - run: sbt -Dcom.xmlcalabash.css.prince.exepath=/tmp test
 
       - when:
           condition:
