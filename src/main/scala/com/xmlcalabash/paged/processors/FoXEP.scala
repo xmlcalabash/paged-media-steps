@@ -5,11 +5,10 @@ import com.xmlcalabash.paged.config.FoProcessor
 import com.xmlcalabash.paged.exceptions.PagedMediaException
 import com.xmlcalabash.runtime.XMLCalabashRuntime
 import com.xmlcalabash.util.{MediaType, S9Api}
-import jp.co.antenna.XfoJavaCtl.{MessageListener, XfoFormatPageListener, XfoObj}
-import net.sf.saxon.s9api.{QName, Serializer, XdmNode, XdmValue}
+import net.sf.saxon.s9api.{QName, XdmNode, XdmValue}
 import org.slf4j.{Logger, LoggerFactory}
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, OutputStream}
+import java.io.OutputStream
 import java.net.URI
 import java.util.Properties
 import javax.xml.transform.sax.SAXSource
