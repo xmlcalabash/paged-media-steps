@@ -23,3 +23,5 @@ libraryDependencies += "com.sun.media" % "jai-codec" % "1.1.3"
 
 Compile / unmanagedClasspath += file(s"${baseDirectory.value}/lib")
 Runtime / unmanagedClasspath += file(s"${baseDirectory.value}/lib")
+
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.3" % "test"
