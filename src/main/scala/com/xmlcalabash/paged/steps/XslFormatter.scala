@@ -4,9 +4,9 @@ import com.xmlcalabash.exceptions.XProcException
 import com.xmlcalabash.model.util.{ValueParser, XProcConstants}
 import com.xmlcalabash.paged.config.FoProcessor
 import com.xmlcalabash.paged.exceptions.PagedMediaException
-import com.xmlcalabash.runtime.{BinaryNode, StaticContext, XProcMetadata, XmlPortSpecification}
+import com.xmlcalabash.runtime.{BinaryNode, XProcMetadata, XmlPortSpecification}
 import com.xmlcalabash.steps.DefaultXmlStep
-import com.xmlcalabash.util.{MediaType, URIUtils}
+import com.xmlcalabash.util.{MediaType, MinimalStaticContext, PipelineEnvironmentOptionString, URIUtils}
 import net.sf.saxon.s9api.{QName, XdmNode, XdmValue}
 
 import java.io.ByteArrayOutputStream
@@ -14,7 +14,7 @@ import java.net.URI
 import scala.collection.mutable.ListBuffer
 
 class XslFormatter extends DefaultXmlStep {
-  private val cc_fo_processor = new QName("cc", XProcConstants.ns_cc, "fo-processor")
+  private val cc_fo_processor = "Q{http://xmlcalabash.com/ns/configuration}fo-processor"
   private var source: XdmNode = _
   private var sourceMeta: XProcMetadata = _
   private var parameters: Map[QName, XdmValue] = _
@@ -35,7 +35,7 @@ class XslFormatter extends DefaultXmlStep {
     }
   }
 
-  override def run(context: StaticContext): Unit = {
+  override def run(context: MinimalStaticContext): Unit = {
     super.run(context)
 
     val ctString = optionalStringBinding(XProcConstants._content_type)
@@ -52,8 +52,10 @@ class XslFormatter extends DefaultXmlStep {
     }
 
     val foClasses = ListBuffer.empty[String]
-    if (config.config.configSettings.get(cc_fo_processor).isDefined) {
-      foClasses += config.config.configSettings.get(cc_fo_processor).get.asString
+    for (opt <- config.config.parameters
+      collect { case p: PipelineEnvironmentOptionString => p }
+      filter { _.eqname == cc_fo_processor }) {
+      foClasses += opt.value
     }
     foClasses += "com.xmlcalabash.paged.processors.FoFOP"
 

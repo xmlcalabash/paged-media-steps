@@ -1,0 +1,4 @@
+namespace http://www.w3.org/ns/xproc = p
+
+step p:css-formatter = com.xmlcalabash.paged.steps.CssFormatter
+step p:xsl-formatter = com.xmlcalabash.paged.steps.XslFormatter
