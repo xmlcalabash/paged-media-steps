@@ -5,16 +5,16 @@ import com.xmlcalabash.exceptions.XProcException
 import com.xmlcalabash.model.util.{ValueParser, XProcConstants}
 import com.xmlcalabash.paged.config.CssProcessor
 import com.xmlcalabash.paged.exceptions.PagedMediaException
-import com.xmlcalabash.runtime.{BinaryNode, StaticContext, XProcMetadata, XmlPortSpecification}
+import com.xmlcalabash.runtime.{BinaryNode, XProcMetadata, XmlPortSpecification}
 import com.xmlcalabash.steps.DefaultXmlStep
-import com.xmlcalabash.util.MediaType
+import com.xmlcalabash.util.{MediaType, MinimalStaticContext, PipelineEnvironmentOptionString}
 import net.sf.saxon.s9api.{QName, XdmNode, XdmValue}
 
 import java.io.ByteArrayOutputStream
 import scala.collection.mutable.ListBuffer
 
 class CssFormatter extends DefaultXmlStep {
-  private val cc_css_processor = new QName("cc", XProcConstants.ns_cc, "css-processor")
+  private val cc_css_processor = "Q{http://xmlcalabash.com/ns/configuration}css-processor"
   private var source: XdmNode = _
   private var sourceMeta: XProcMetadata = _
   private val stylesheets = ListBuffer.empty[Tuple2[XdmNode,XProcMetadata]]
@@ -41,7 +41,7 @@ class CssFormatter extends DefaultXmlStep {
     }
   }
 
-  override def run(context: StaticContext): Unit = {
+  override def run(context: MinimalStaticContext): Unit = {
     super.run(context)
     super.run(context)
 
@@ -59,8 +59,10 @@ class CssFormatter extends DefaultXmlStep {
     }
 
     val cssClasses = ListBuffer.empty[String]
-    if (config.config.configSettings.get(cc_css_processor).isDefined) {
-      cssClasses += config.config.configSettings.get(cc_css_processor).get.asString
+    for (opt <- config.config.parameters
+                collect { case p: PipelineEnvironmentOptionString => p }
+                filter { _.eqname == cc_css_processor }) {
+      cssClasses += opt.value
     }
 
     var provider = Option.empty[CssProcessor]
